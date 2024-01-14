@@ -1,13 +1,14 @@
 import pytest
 from django.conf import settings
 
+from news.forms import CommentForm
+
 
 @pytest.mark.usefixtures('news_list')
 @pytest.mark.django_db
 def test_news_on_page_count(client, home_url):
     response = client.get(home_url)
     news_count = len(response.context['object_list'])
-    print(news_count)
     assert news_count == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
@@ -46,3 +47,4 @@ def test_authorized_client_has_form(client, author, detail_url):
     client.force_login(author)
     response = client.get(detail_url)
     assert 'form' in response.context
+    assert isinstance(response.context['form'], CommentForm)

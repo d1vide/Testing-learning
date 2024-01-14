@@ -54,6 +54,16 @@ def detail_url(news):
 
 
 @pytest.fixture
+def edit_url(news):
+    return reverse('news:edit', args=(news.id,))
+
+
+@pytest.fixture
+def delete_url(news):
+    return reverse('news:delete', args=(news.id,))
+
+
+@pytest.fixture
 def news_list():
     today = datetime.today()
     all_news = [

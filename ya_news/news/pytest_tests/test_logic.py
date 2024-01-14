@@ -41,30 +41,37 @@ def test_user_cant_use_bad_words(author_client, detail_url):
 
 
 @pytest.mark.django_db
-def test_author_can_edit_comment(author_client, comment, new_form_data):
-    url = reverse('news:edit', args=(comment.id,))
-    response = author_client.post(url, data=new_form_data)
-    url_to_comment = (reverse('news:detail', args=(comment.news.id,))
-                      + '#comments')
+def test_author_can_edit_comment(author_client,
+                                 comment,
+                                 new_form_data,
+                                 news,
+                                 author,
+                                 edit_url,
+                                 detail_url):
+    response = author_client.post(edit_url, data=new_form_data)
+    url_to_comment = detail_url + '#comments'
     assertRedirects(response, url_to_comment)
     comment.refresh_from_db()
     assert comment.text == new_form_data['text']
+    assert comment.news == news
+    assert comment.author == author
 
 
+@pytest.mark.usefixtures('comment')
 @pytest.mark.django_db
-def test_author_can_delete_comment(author_client, comment):
-    url = reverse('news:delete', args=(comment.id,))
-    response = author_client.delete(url)
-    url_to_comment = (reverse('news:detail', args=(comment.news.id,))
-                      + '#comments')
+def test_author_can_delete_comment(author_client, delete_url, detail_url):
+    response = author_client.delete(delete_url)
+    url_to_comment = detail_url + '#comments'
     assertRedirects(response, url_to_comment)
     assert Comment.objects.count() == 0
 
 
 @pytest.mark.django_db
-def test_reader_can_not_edit_comment(reader_client, comment, new_form_data):
-    url = reverse('news:edit', args=(comment.id,))
-    response = reader_client.post(url, data=new_form_data)
+def test_reader_can_not_edit_comment(reader_client,
+                                     comment,
+                                     new_form_data,
+                                     edit_url):
+    response = reader_client.post(edit_url, data=new_form_data)
     assert response.status_code == HTTPStatus.NOT_FOUND
     comment_from_db = Comment.objects.get()
     comment.refresh_from_db()
